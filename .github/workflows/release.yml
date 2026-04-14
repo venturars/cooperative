@@ -1,0 +1,118 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Create semantic version tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
+          echo "latest=${LATEST:-v0.0.0}" >> $GITHUB_OUTPUT
+
+      - name: Determine version bump
+        id: bump
+        run: |
+          LATEST="${{ steps.get_tag.outputs.latest }}"
+
+          # Get commits since last tag
+          if [ "$LATEST" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"%s" ${LATEST}..HEAD)
+          fi
+
+          echo "Commits since $LATEST:"
+          echo "$COMMITS"
+
+          # Determine bump type:
+          # BREAKING CHANGE or feat!: → major
+          # feat: → minor
+          # fix:, chore:, docs:, refactor:, perf:, style:, test: → patch
+          BUMP="patch"
+
+          if echo "$COMMITS" | grep -qiE "BREAKING CHANGE|^[a-z]+(\([^)]+\))?!:"; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qiE "^feat(\([^)]+\))?:"; then
+            BUMP="minor"
+          fi
+
+          echo "bump=${BUMP}" >> $GITHUB_OUTPUT
+          echo "Bump type: $BUMP"
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          LATEST="${{ steps.get_tag.outputs.latest }}"
+          BUMP="${{ steps.bump.outputs.bump }}"
+
+          # Strip 'v' prefix
+          VERSION="${LATEST#v}"
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+
+          case $BUMP in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEXT="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "next=${NEXT}" >> $GITHUB_OUTPUT
+          echo "Next version: $NEXT"
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          LATEST="${{ steps.get_tag.outputs.latest }}"
+
+          if [ "$LATEST" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" ${LATEST}..HEAD)
+          fi
+
+          NOTES="## What's Changed\n\n${COMMITS}"
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create tag and release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.next_version.outputs.next }}
+          name: ${{ steps.next_version.outputs.next }}
+          body: ${{ steps.notes.outputs.notes }}
+          draft: false
+          prerelease: false
+          make_latest: true
