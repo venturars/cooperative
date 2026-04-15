@@ -1,6 +1,6 @@
 {
   "name": "cooperative",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "SDK for Cooperative applications — token swaps, balances, and chain utilities powered by wagmi/viem",
   "license": "MIT",
   "type": "module",
