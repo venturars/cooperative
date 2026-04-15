@@ -19,20 +19,32 @@ When code is pushed to the `main` branch, GitHub Actions automatically:
 
 ## Release Workflow
 
-### 1. Update Version
+### 1. Update Version Automatically
 
-Before merging to `main`, update the version in `package.json`:
+Use the version bump script:
 
-```json
-{
-  "version": "0.1.1"  // Update this
-}
+```bash
+# Bump version based on commits
+pnpm run version:bump
+
+# See what would happen first
+pnpm run version:dry-run
 ```
+
+The script analyzes commit messages and updates `package.json` automatically.
 
 **Version bump rules:**
 - `feat:` commits → bump MINOR version (0.1.0 → 0.2.0)
 - `fix:` commits → bump PATCH version (0.1.0 → 0.1.1)
 - Breaking changes → bump MAJOR version (0.1.0 → 1.0.0)
+
+### Manual Version (Alternative)
+
+```json
+{
+  "version": "0.1.1"  // Set manually if needed
+}
+```
 
 ### 2. Merge to Main
 

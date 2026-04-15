@@ -11,20 +11,38 @@ We use [Semantic Versioning](https://semver.org/):
 
 ## Release Workflow
 
-### 1. Update Version in `package.json`
+### 1. Update Version Automatically
 
-Before merging to `main`, update the version in `package.json`:
+Use the automatic version bump script:
+
+```bash
+# From repository root
+pnpm run version:bump
+
+# Or dry run first to see what would happen
+pnpm run version:dry-run
+```
+
+The script:
+1. Analyzes commits since last tag
+2. Determines bump type based on commit messages
+3. Updates `package.json` automatically
+
+**Version bump rules:**
+- `feat:` commits → bump MINOR version (0.1.0 → 0.2.0)
+- `fix:` commits → bump PATCH version (0.1.0 → 0.1.1)
+- Breaking changes → bump MAJOR version (0.1.0 → 1.0.0)
+- `docs:`, `chore:`, etc. → No automatic bump
+
+### Manual Version Update (Alternative)
+
+If you prefer to set the version manually:
 
 ```json
 {
   "version": "0.1.1"  // Update this
 }
 ```
-
-**Version bump rules:**
-- `feat:` commits → bump MINOR version (0.1.0 → 0.2.0)
-- `fix:` commits → bump PATCH version (0.1.0 → 0.1.1)
-- Breaking changes → bump MAJOR version (0.1.0 → 1.0.0)
 
 ### 2. Merge to Main
 
