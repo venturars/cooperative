@@ -24,6 +24,7 @@
     "typecheck": "tsc --noEmit",
     "version:bump": "node scripts/bump-version.js",
     "version:dry-run": "node scripts/bump-version.js --dry-run",
+    "release": "./scripts/release.sh",
     "prepublishOnly": "pnpm run build",
     "docs:typecheck": "pnpm -C docs run typecheck",
     "docs:install": "pnpm -C docs install",
