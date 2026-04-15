@@ -1,41 +1,161 @@
 ---
 title: Releasing
-description: Maintainer workflow for merging to main, semver bumps from commits, and pinning releases in applications
-tableOfContents:
-  minHeadingLevel: 2
-  maxHeadingLevel: 2
+description: How to release new versions of the Cooperative SDK
 ---
 
-Release mechanics and maintainer expectations are documented in the repository’s **<a href="https://github.com/venturars/cooperative/blob/main/RELEASING.md" target="_blank" rel="noopener noreferrer">Releasing guide</a>**. This page summarizes that workflow; refer to the linked document for the canonical version.
+# Releasing
 
-## Branch flow
+This guide explains the release process for the Cooperative SDK.
 
-- Day-to-day work happens on **`develop`**.
-- Merge **`develop` → `main`** via pull request to trigger a release.
-- A GitHub Action creates a new **version tag** on merges to `main`.
+## Overview
 
-## Commit messages and version bumps
+When code is pushed to the `main` branch, GitHub Actions automatically:
 
-Commits follow <a href="https://www.conventionalcommits.org/" target="_blank" rel="noopener noreferrer">Conventional Commits</a>. CI uses commit messages to infer the semver bump:
+1. **Reads the version** from `package.json`
+2. **Checks if it changed** from the last release
+3. **Builds the package**
+4. **Generates a changelog** from commit messages
+5. **Creates a GitHub release** with the tag `vX.Y.Z`
 
-| Commit prefix                                   | Version bump      | Example                          |
-| ----------------------------------------------- | ----------------- | -------------------------------- |
-| `BREAKING CHANGE` or `feat!:`                   | **major** (x.0.0) | `feat!: remove configureSetup`   |
-| `feat:`                                         | **minor** (0.x.0) | `feat: add retrieveNFTs`         |
-| `fix:`, `chore:`, `docs:`, `refactor:`, `perf:` | **patch** (0.0.x) | `fix: handle null token address` |
+## Release Workflow
 
-## Consuming a tag from GitHub in an app
+### 1. Update Version Automatically
 
-After a tag exists (for example `v1.2.0`), pin it in `package.json`:
-
-```json
-"cooperative": "github:venturars/cooperative#v1.2.0"
-```
-
-Then install:
+Use the version bump script:
 
 ```bash
-pnpm install
+# Bump version based on commits
+pnpm run version:bump
+
+# See what would happen first
+pnpm run version:dry-run
 ```
 
-To upgrade, bump the tag in `package.json` and reinstall. Further detail is in <a href="https://github.com/venturars/cooperative/blob/main/RELEASING.md" target="_blank" rel="noopener noreferrer"><code>RELEASING.md</code></a>.
+The script analyzes commit messages and updates `package.json` automatically.
+
+**Version bump rules:**
+
+- `feat:` commits → bump MINOR version (0.1.0 → 0.2.0)
+- `fix:` commits → bump PATCH version (0.1.0 → 0.1.1)
+- Breaking changes → bump MAJOR version (0.1.0 → 1.0.0)
+
+### Manual Version (Alternative)
+
+```json
+{
+  "version": "0.1.1" // Set manually if needed
+}
+```
+
+### 2. Merge to Main
+
+```bash
+# Ensure you're on develop branch
+git checkout develop
+
+# Update with latest changes
+git pull origin develop
+
+# Merge to main
+git checkout main
+git merge develop
+git push origin main
+```
+
+### 3. Verify Release
+
+Check the [GitHub Releases](https://github.com/venturars/cooperative/releases) page:
+
+- ✅ Tag matches package.json version (e.g., `v0.1.1`)
+- ✅ Changelog is accurate
+- ✅ Release is published
+
+## Commit Message Convention
+
+Use conventional commits for automatic changelog generation:
+
+### Feature (bumps MINOR version)
+
+```
+feat: add new swap validation function
+feat(api): improve error messages
+```
+
+### Fix (bumps PATCH version)
+
+```
+fix: handle edge case in balance calculation
+fix(swaps): correct gas estimation
+```
+
+### Documentation
+
+```
+docs: update API reference
+docs: fix typo in README
+```
+
+### Maintenance
+
+```
+chore: update dependencies
+chore: improve build configuration
+```
+
+### Breaking Changes (bumps MAJOR version)
+
+```
+feat!: remove deprecated API
+feat(api): change response format
+
+BREAKING CHANGE: Response format changed from array to object
+```
+
+## Manual Release
+
+If you need to trigger a release manually:
+
+1. Go to [Actions tab](https://github.com/venturars/cooperative/actions)
+2. Select "Release" workflow
+3. Click "Run workflow"
+4. Select "main" branch
+5. Click "Run workflow"
+
+## Troubleshooting
+
+### Tag Doesn't Match package.json
+
+**Problem**: GitHub created tag `v0.1.2` but `package.json` says `0.1.1`
+
+**Solution**:
+
+1. Delete the incorrect tag:
+   ```bash
+   git tag -d v0.1.2
+   git push origin :refs/tags/v0.1.2
+   ```
+2. Update `package.json` to correct version
+3. Push to `main` again
+
+### Release Not Created
+
+**Problem**: Pushed to `main` but no release was created
+
+**Check**:
+
+1. Go to [Actions](https://github.com/venturars/cooperative/actions)
+2. Find the "Release" workflow run
+3. Check logs for errors
+4. Verify `package.json` version changed from last tag
+
+### Changelog Missing Commits
+
+**Problem**: Some commits don't appear in the release notes
+
+**Solution**: Ensure commits follow the conventional commit format
+
+## Version History
+
+| Version | Date            | Changes                              |
+| ------- | --------------- | ------------------------------------ |
+| 0.1.0   | Initial release | Basic swap and balance functionality |
