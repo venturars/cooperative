@@ -4,115 +4,141 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Allow manual trigger
 
 permissions:
   contents: write
 
 jobs:
-  tag:
-    name: Create semantic version tag
+  release:
+    name: Create Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get package version
+        id: package_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
 
       - name: Get latest tag
-        id: get_tag
+        id: get_latest_tag
         run: |
-          LATEST=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1)
-          echo "latest=${LATEST:-v0.0.0}" >> $GITHUB_OUTPUT
+          # Get the latest tag that matches vX.Y.Z pattern
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || echo "")
+          echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
 
-      - name: Determine version bump
-        id: bump
+      - name: Check if version changed
+        id: check_version
         run: |
-          LATEST="${{ steps.get_tag.outputs.latest }}"
-
-          # Get commits since last tag
-          if [ "$LATEST" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"%s" HEAD)
+          PACKAGE_VERSION="${{ steps.package_version.outputs.version }}"
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous tags found, creating first release"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "tag=v${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
+          elif [ "v${PACKAGE_VERSION}" != "$LATEST_TAG" ]; then
+            echo "Version changed from $LATEST_TAG to v${PACKAGE_VERSION}"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "tag=v${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
           else
-            COMMITS=$(git log --pretty=format:"%s" ${LATEST}..HEAD)
+            echo "Version unchanged ($LATEST_TAG), skipping release"
+            echo "should_release=false" >> $GITHUB_OUTPUT
           fi
 
-          echo "Commits since $LATEST:"
-          echo "$COMMITS"
+      - name: Build package
+        if: steps.check_version.outputs.should_release == 'true'
+        run: pnpm run build
 
-          # Determine bump type:
-          # BREAKING CHANGE or feat!: → major
-          # feat: → minor
-          # fix:, chore:, docs:, refactor:, perf:, style:, test: → patch
-          BUMP="patch"
-
-          if echo "$COMMITS" | grep -qiE "BREAKING CHANGE|^[a-z]+(\([^)]+\))?!:"; then
-            BUMP="major"
-          elif echo "$COMMITS" | grep -qiE "^feat(\([^)]+\))?:"; then
-            BUMP="minor"
-          fi
-
-          echo "bump=${BUMP}" >> $GITHUB_OUTPUT
-          echo "Bump type: $BUMP"
-
-      - name: Calculate next version
-        id: next_version
+      - name: Generate changelog
+        if: steps.check_version.outputs.should_release == 'true'
+        id: changelog
         run: |
-          LATEST="${{ steps.get_tag.outputs.latest }}"
-          BUMP="${{ steps.bump.outputs.bump }}"
-
-          # Strip 'v' prefix
-          VERSION="${LATEST#v}"
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
-
-          case $BUMP in
-            major)
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              ;;
-            minor)
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              ;;
-            patch)
-              PATCH=$((PATCH + 1))
-              ;;
-          esac
-
-          NEXT="v${MAJOR}.${MINOR}.${PATCH}"
-          echo "next=${NEXT}" >> $GITHUB_OUTPUT
-          echo "Next version: $NEXT"
-
-      - name: Generate release notes
-        id: notes
-        run: |
-          LATEST="${{ steps.get_tag.outputs.latest }}"
-
-          if [ "$LATEST" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          NEW_TAG="${{ steps.check_version.outputs.tag }}"
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # First release - get all commits
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --reverse)
+            CHANGELOG="## Initial Release\n\n$COMMITS"
           else
-            COMMITS=$(git log --pretty=format:"- %s (%h)" ${LATEST}..HEAD)
+            # Get commits since last tag
+            COMMITS=$(git log --pretty=format:"- %s (%h)" ${LATEST_TAG}..HEAD)
+            
+            # Categorize commits
+            FEATURES=$(echo "$COMMITS" | grep -iE "^\- feat" || true)
+            FIXES=$(echo "$COMMITS" | grep -iE "^\- fix" || true)
+            DOCS=$(echo "$COMMITS" | grep -iE "^\- docs" || true)
+            CHORE=$(echo "$COMMITS" | grep -iE "^\- chore" || true)
+            OTHER=$(echo "$COMMITS" | grep -viE "^\- (feat|fix|docs|chore)" || true)
+            
+            CHANGELOG="## What's Changed\n\n"
+            
+            if [ -n "$FEATURES" ]; then
+              CHANGELOG+="### 🚀 New Features\n$FEATURES\n\n"
+            fi
+            
+            if [ -n "$FIXES" ]; then
+              CHANGELOG+="### 🐛 Bug Fixes\n$FIXES\n\n"
+            fi
+            
+            if [ -n "$DOCS" ]; then
+              CHANGELOG+="### 📚 Documentation\n$DOCS\n\n"
+            fi
+            
+            if [ -n "$CHORE" ]; then
+              CHANGELOG+="### 🔧 Maintenance\n$CHORE\n\n"
+            fi
+            
+            if [ -n "$OTHER" ]; then
+              CHANGELOG+="### Other Changes\n$OTHER\n\n"
+            fi
           fi
-
-          NOTES="## What's Changed\n\n${COMMITS}"
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$NOTES" >> $GITHUB_OUTPUT
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Create tag and release
+      - name: Create GitHub Release
+        if: steps.check_version.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.next_version.outputs.next }}
-          name: ${{ steps.next_version.outputs.next }}
-          body: ${{ steps.notes.outputs.notes }}
+          tag_name: ${{ steps.check_version.outputs.tag }}
+          name: ${{ steps.check_version.outputs.tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
           make_latest: true
+          generate_release_notes: false
+
+      - name: Output release info
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          echo "🎉 Release created: ${{ steps.check_version.outputs.tag }}"
+          echo "📦 Package version: ${{ steps.package_version.outputs.version }}"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.check_version.outputs.tag }}"
+
+      - name: Skip release message
+        if: steps.check_version.outputs.should_release == 'false'
+        run: |
+          echo "⏭️  Skipping release - version unchanged"
+          echo "Current package version: ${{ steps.package_version.outputs.version }}"
+          echo "Latest tag: ${{ steps.get_latest_tag.outputs.latest_tag }}"
