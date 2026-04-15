@@ -25,6 +25,7 @@
     "version:bump": "node scripts/bump-version.js",
     "version:dry-run": "node scripts/bump-version.js --dry-run",
     "release": "./scripts/release.sh",
+    "issue:cache": "./scripts/create-cache-issue.sh",
     "prepublishOnly": "pnpm run build",
     "docs:typecheck": "pnpm -C docs run typecheck",
     "docs:install": "pnpm -C docs install",
