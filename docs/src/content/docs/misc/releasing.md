@@ -34,6 +34,7 @@ pnpm run version:dry-run
 The script analyzes commit messages and updates `package.json` automatically.
 
 **Version bump rules:**
+
 - `feat:` commits → bump MINOR version (0.1.0 → 0.2.0)
 - `fix:` commits → bump PATCH version (0.1.0 → 0.1.1)
 - Breaking changes → bump MAJOR version (0.1.0 → 1.0.0)
@@ -42,7 +43,7 @@ The script analyzes commit messages and updates `package.json` automatically.
 
 ```json
 {
-  "version": "0.1.1"  // Set manually if needed
+  "version": "0.1.1" // Set manually if needed
 }
 ```
 
@@ -74,30 +75,35 @@ Check the [GitHub Releases](https://github.com/venturars/cooperative/releases) p
 Use conventional commits for automatic changelog generation:
 
 ### Feature (bumps MINOR version)
+
 ```
 feat: add new swap validation function
 feat(api): improve error messages
 ```
 
 ### Fix (bumps PATCH version)
+
 ```
 fix: handle edge case in balance calculation
 fix(swaps): correct gas estimation
 ```
 
 ### Documentation
+
 ```
 docs: update API reference
 docs: fix typo in README
 ```
 
 ### Maintenance
+
 ```
 chore: update dependencies
 chore: improve build configuration
 ```
 
 ### Breaking Changes (bumps MAJOR version)
+
 ```
 feat!: remove deprecated API
 feat(api): change response format
@@ -122,6 +128,7 @@ If you need to trigger a release manually:
 **Problem**: GitHub created tag `v0.1.2` but `package.json` says `0.1.1`
 
 **Solution**:
+
 1. Delete the incorrect tag:
    ```bash
    git tag -d v0.1.2
@@ -135,6 +142,7 @@ If you need to trigger a release manually:
 **Problem**: Pushed to `main` but no release was created
 
 **Check**:
+
 1. Go to [Actions](https://github.com/venturars/cooperative/actions)
 2. Find the "Release" workflow run
 3. Check logs for errors
@@ -146,28 +154,8 @@ If you need to trigger a release manually:
 
 **Solution**: Ensure commits follow the conventional commit format
 
-## Release Checklist
-
-### Before Merging to Main
-- [ ] Update version in `package.json`
-- [ ] Run tests: `pnpm test`
-- [ ] Build package: `pnpm build`
-- [ ] Update documentation if needed
-- [ ] Verify commit messages follow convention
-
-### After Release
-- [ ] Verify tag created: `vX.Y.Z`
-- [ ] Check release notes on GitHub
-- [ ] Test published package: `pnpm add cooperative@X.Y.Z`
-
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 0.1.0 | Initial release | Basic swap and balance functionality |
-
-## Related Resources
-
-- [GitHub Workflow](https://github.com/venturars/cooperative/blob/main/.github/workflows/release.yml)
-- [RELEASING.md](https://github.com/venturars/cooperative/blob/main/RELEASING.md) (detailed technical guide)
-- [Contributing Guide](/misc/contributing/) (development workflow)
+| Version | Date            | Changes                              |
+| ------- | --------------- | ------------------------------------ |
+| 0.1.0   | Initial release | Basic swap and balance functionality |

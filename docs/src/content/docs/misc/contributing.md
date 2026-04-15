@@ -67,21 +67,3 @@ Push your branch to your fork or to the remote you use for collaboration, then o
 ### 4. Review
 
 Maintainers will review when available. Update the branch if requested, reply to review comments, and keep the pull request description accurate if the scope shifts.
-
-### 5. After Merge
-
-- Changes will be included in the next release
-- `develop` is periodically merged to `main`
-- Releases are automatically created when code is pushed to `main`
-
-#### Release Process
-
-1. **Update version** in `package.json` before merging to `main`
-2. **Merge** from `develop` to `main`
-3. **GitHub Actions** automatically:
-   - Reads version from `package.json`
-   - Creates tag `vX.Y.Z`
-   - Generates changelog from commits
-   - Publishes GitHub release
-
-For detailed release instructions, see [RELEASING.md](https://github.com/venturars/cooperative/blob/main/RELEASING.md).

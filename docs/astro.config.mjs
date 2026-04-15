@@ -25,7 +25,6 @@ export default defineConfig({
           label: "Getting Started",
           items: [
             { label: "Installation", link: "/getting-started/installation/" },
-            { label: "Basic Usage", link: "/getting-started/basic-usage/" },
             { label: "Configuration", link: "/getting-started/configuration/" },
           ],
         },
@@ -44,7 +43,6 @@ export default defineConfig({
           label: "Miscellaneous",
           items: [
             { label: "Contributing", link: "/misc/contributing/" },
-            { label: "Versioning", link: "/misc/versioning/" },
             { label: "Releasing", link: "/misc/releasing/" },
             { label: "License", link: "/misc/license/" },
           ],
