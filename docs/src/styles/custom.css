@@ -1,0 +1,168 @@
+/* Cooperative SDK — small additions on top of Starlight defaults (no Tailwind / portfolio theme) */
+
+/* Plain fenced blocks (non–Expressive Code) */
+.sl-markdown-content > pre,
+.sl-markdown-content p > pre:only-child {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background: var(--sl-color-gray-7);
+}
+
+figure.expressive-code {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+
+figure.expressive-code pre {
+  background: transparent !important;
+  border: none !important;
+}
+
+/*
+ * Tables: Starlight uses `th { color: var(--sl-color-white) }`; with dark OS theme that can be
+ * white on a light prose column. Fix readability; full width avoids shrink-wrapped layout.
+ */
+.content-panel .sl-markdown-content table:not(:where(.not-content *)) {
+  width: 100%;
+}
+
+.content-panel .sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+  padding: 0.85rem 1.25rem;
+}
+
+.content-panel .sl-markdown-content th:not(:where(.not-content *)) {
+  color: var(--sl-color-text);
+  font-weight: 600;
+}
+
+.content-panel .sl-markdown-content tbody tr:nth-child(even) td:not(:where(.not-content *)) {
+  background: var(--sl-color-gray-6);
+}
+
+.api-reference {
+  margin: 2rem 0;
+}
+
+.api-method {
+  background: var(--sl-color-blue-low);
+  border-left: 4px solid var(--sl-color-blue);
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.api-method h3 {
+  color: var(--sl-color-accent-high);
+  margin-top: 0;
+}
+
+.param-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.param-table th {
+  background: var(--sl-color-gray-6);
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+  font-weight: 600;
+  border-bottom: 2px solid var(--sl-color-gray-5);
+  color: var(--sl-color-text);
+}
+
+.param-table td {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  vertical-align: top;
+}
+
+.param-table tbody tr:nth-child(even) td {
+  background: var(--sl-color-gray-6);
+}
+
+.param-table tr:last-child td {
+  border-bottom: none;
+}
+
+.callout {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  border-left: 4px solid;
+}
+
+.callout.note {
+  background: var(--sl-color-blue-low);
+  border-color: var(--sl-color-blue);
+}
+
+.callout.warning {
+  background: var(--sl-color-orange-low);
+  border-color: var(--sl-color-orange);
+}
+
+.callout.tip {
+  background: var(--sl-color-green-low);
+  border-color: var(--sl-color-green);
+}
+
+.chain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-text);
+}
+
+.chain-badge.ethereum {
+  background: #627eea;
+  color: white;
+}
+
+.chain-badge.polygon {
+  background: #8247e5;
+  color: white;
+}
+
+.chain-badge.base {
+  background: #0052ff;
+  color: white;
+}
+
+.interactive-example {
+  position: relative;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 2rem 0;
+}
+
+.interactive-example-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--sl-color-gray-6);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+.interactive-example-content {
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .param-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .api-method {
+    padding: 0.75rem;
+  }
+}

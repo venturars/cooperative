@@ -1,0 +1,23 @@
+{
+  "name": "cooperative-docs",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.38.0",
+    "astro": "6.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.8.2"
+  }
+}
