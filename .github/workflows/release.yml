@@ -91,6 +91,51 @@ jobs:
         if: steps.check_version.outputs.should_release == 'true'
         run: pnpm run build
 
+      - name: Create package tarball
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          # Create a clean package directory
+          mkdir -p package-dist
+          
+          # Copy necessary files
+          cp -r dist package-dist/
+          cp package.json package-dist/
+          cp README.md package-dist/
+          cp LICENSE package-dist/
+          cp .npmignore package-dist/ 2>/dev/null || true
+          
+          # Create package tarball
+          cd package-dist
+          npm pack
+          
+          # Move tarball to root
+          mv *.tgz ../cooperative-${{ steps.package_version.outputs.version }}.tgz
+          cd ..
+          
+          echo "📦 Package tarball created: cooperative-${{ steps.package_version.outputs.version }}.tgz"
+
+      - name: Test package installation
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          # Test that the package can be installed and imported
+          echo "🧪 Testing package installation..."
+          
+          # Create a test directory
+          mkdir -p test-install
+          cd test-install
+          
+          # Initialize npm project
+          npm init -y > /dev/null 2>&1
+          
+          # Install the tarball
+          npm install ../cooperative-${{ steps.package_version.outputs.version }}.tgz
+          
+          # Test import
+          node -e "import('cooperative').then(m => console.log('✅ Package imports successfully. Exports:', Object.keys(m).length, 'functions')).catch(e => { console.error('❌ Import failed:', e.message); process.exit(1); })"
+          
+          echo "✅ Package installation test passed"
+          cd ..
+
       - name: Generate changelog
         if: steps.check_version.outputs.should_release == 'true'
         id: changelog
@@ -151,6 +196,12 @@ jobs:
           prerelease: false
           make_latest: true
           generate_release_notes: false
+          files: |
+            cooperative-${{ steps.package_version.outputs.version }}.tgz
+            dist/*
+            package.json
+            README.md
+            LICENSE
 
       - name: Output release info
         if: steps.check_version.outputs.should_release == 'true'
@@ -158,6 +209,7 @@ jobs:
           echo "🎉 Release created: ${{ steps.check_version.outputs.tag }}"
           echo "📦 Package version: ${{ steps.package_version.outputs.version }}"
           echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.check_version.outputs.tag }}"
+          echo "📁 Built package included in release assets"
 
       - name: Skip release message
         if: steps.check_version.outputs.should_release == 'false'

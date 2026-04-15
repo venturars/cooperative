@@ -1,0 +1,34 @@
+# Source files
+src/
+scripts/
+.github/
+docs/
+node_modules/
+
+# Build artifacts
+*.log
+*.tsbuildinfo
+
+# Configuration files
+tsup.config.ts
+tsconfig.json
+
+# Test files
+__tests__/
+*.test.*
+*.spec.*
+
+# Documentation
+*.md
+!README.md
+!LICENSE
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
