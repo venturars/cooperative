@@ -22,8 +22,10 @@
     "build:dev": "COOPERATIVE_API_BASE_URL=http://localhost:4321/api tsup --sourcemap",
     "dev": "COOPERATIVE_API_BASE_URL=http://localhost:4321/api tsup --watch",
     "typecheck": "tsc --noEmit",
-    "docs:typecheck": "pnpm -C docs run typecheck",
+    "version:bump": "node scripts/bump-version.js",
+    "version:dry-run": "node scripts/bump-version.js --dry-run",
     "prepublishOnly": "pnpm run build",
+    "docs:typecheck": "pnpm -C docs run typecheck",
     "docs:install": "pnpm -C docs install",
     "docs:dev": "pnpm -C docs run dev",
     "docs:build": "pnpm -C docs run build"

@@ -44,6 +44,7 @@ export default defineConfig({
           label: "Miscellaneous",
           items: [
             { label: "Contributing", link: "/misc/contributing/" },
+            { label: "Versioning", link: "/misc/versioning/" },
             { label: "Releasing", link: "/misc/releasing/" },
             { label: "License", link: "/misc/license/" },
           ],
