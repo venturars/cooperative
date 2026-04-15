@@ -25,6 +25,7 @@ export default defineConfig({
           label: "Getting Started",
           items: [
             { label: "Installation", link: "/getting-started/installation/" },
+            { label: "Basic Usage", link: "/getting-started/basic-usage/" },
             { label: "Configuration", link: "/getting-started/configuration/" },
           ],
         },
