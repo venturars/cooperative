@@ -1,6 +1,6 @@
 {
   "name": "cooperative",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "SDK for Cooperative applications — token swaps, balances, and chain utilities powered by wagmi/viem",
   "license": "MIT",
   "type": "module",
@@ -28,6 +28,7 @@
     "version:dry-run": "node scripts/bump-version.js --dry-run",
     "release": "./scripts/release.sh",
     "prepublishOnly": "pnpm run build",
+    "prepare": "pnpm run build",
     "docs:typecheck": "pnpm -C docs run typecheck",
     "docs:install": "pnpm -C docs install",
     "docs:dev": "pnpm -C docs run dev",
